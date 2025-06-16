@@ -1,41 +1,103 @@
+using LibrarySystemMinimalApi.Api.Endpoints;
+using LibrarySystemMinimalApi.Application.Extensions;
+using LibrarySystemMinimalApi.Data.Extensions;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.OpenApi.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// Add services to the container
+builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Library System API",
+        Version = "v1",
+        Description = "A comprehensive library management system API built with Minimal APIs",
+        Contact = new OpenApiContact
+        {
+            Name = "Library System Team",
+            Email = "admin@librarysystem.com"
+        }
+    });
+
+    options.EnableAnnotations();
+    options.DescribeAllParametersInCamelCase();
+
+    options.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
+});
+
+builder.Services.AddDataServices();
+builder.Services.AddApplicationServices();
+
+// Configure logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Library System API v1");
+        c.RoutePrefix = string.Empty; // Serve at root
+
+        // Enhanced UI features
+        c.DefaultModelsExpandDepth(1);
+        c.DefaultModelExpandDepth(1);
+        c.DisplayRequestDuration();
+        c.EnableDeepLinking();
+        c.EnableFilter();
+        c.ShowExtensions();
+        c.EnableValidator();
+    });
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+app.MapAuthEndpoints();
+app.MapBookEndpoints();
+app.MapMemberEndpoints();
+app.MapBorrowingEndpoints();
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/", () => Results.Ok(new
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    message = "Welcome to Library System API (Minimal APIs)",
+    version = "1.0.0",
+    documentation = "/swagger",
+    apiSpec = "/swagger/v1/swagger.json",
+    endpoints = new[] {
+        "/api/auth/login",
+        "/api/auth/signup",
+        "/api/books",
+        "/api/members",
+        "/api/borrowing/borrow",
+        "/api/borrowing/return"
+    }
+}))
+.WithName("GetApiInfo")
+.WithTags("General")
+.WithSummary("Get API information")
+.Produces<object>(StatusCodes.Status200OK)
+.WithOpenApi();
+
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "Healthy",
+    timestamp = DateTime.UtcNow,
+    version = "1.0.0",
+    swagger = "9.0.1"
+}))
+.WithName("HealthCheck")
+.WithTags("General")
+.WithSummary("API health check")
+.Produces<object>(StatusCodes.Status200OK)
+.WithOpenApi();
 
 app.Run();
-
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
