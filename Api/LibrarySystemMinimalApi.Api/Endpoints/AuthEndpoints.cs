@@ -8,18 +8,63 @@ namespace LibrarySystemMinimalApi.Api.Endpoints
     {
         public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/auth").WithTags("Authentication");
+            var group = app.MapGroup("/api/auth")
+                .WithTags("Authentication")
+                .WithOpenApi();
 
+            // POST /api/auth/login
             group.MapPost("/login", async (
                 [FromBody] LoginDto loginDto,
                 IAuthenticationService authService) =>
             {
-               
-                var member = authService.Login(loginDto);
-                return member == null
-                    ? Results.NotFound("Member not found.")
-                    : Results.Ok(member);
-            });
+                try
+                {
+                    var member = authService.Login(loginDto);
+                    if (member == null)
+                        return Results.NotFound("Member not found. Please sign up first.");
+
+                    return Results.Ok(member);
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.BadRequest(ex.Message);
+                }
+                catch (Exception)
+                {
+                    return Results.Problem("An error occurred during login.");
+                }
+            })
+            .WithName("Login")
+            .WithSummary("Authenticate a member by Member ID")
+            .Produces<MemberDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status500InternalServerError);
+
+            // POST /api/auth/signup
+            group.MapPost("/signup", async (
+                [FromBody] CreateMemberDto createMemberDto,
+                IAuthenticationService authService) =>
+            {
+                try
+                {
+                    var member = authService.SignUp(createMemberDto);
+                    return Results.Created($"/api/members/{member.MemberID}", member);
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.BadRequest(ex.Message);
+                }
+                catch (Exception)
+                {
+                    return Results.Problem("An error occurred during signup.");
+                }
+            })
+            .WithName("SignUp")
+            .WithSummary("Register a new member")
+            .Produces<MemberDto>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status500InternalServerError);
         }
     }
 }
