@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LibrarySystemMinimalApi.Domain.Entities.Members
+﻿namespace LibrarySystemMinimalApi.Domain.Entities.Members
 {
     public abstract class Member
     {
         public string Name { get; set; }
-        public int MemberID { get; private set; }
+        public int MemberID { get; protected set; }
         public int BorrowedBooksCount { get; set; } = 0;
+
+        // Parameterless constructor for EF Core
+        protected Member() { }
 
         protected Member(string name, int memberId)
         {
@@ -28,6 +25,5 @@ namespace LibrarySystemMinimalApi.Domain.Entities.Members
         {
             return $"Name: {Name}, ID: {MemberID}, Type: {GetMemberType()}, Borrowed Books: {BorrowedBooksCount}";
         }
-
     }
 }

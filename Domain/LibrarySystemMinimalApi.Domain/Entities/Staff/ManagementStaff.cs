@@ -8,6 +8,8 @@ namespace LibrarySystemMinimalApi.Domain.Entities.Staff
 {
     public class ManagementStaff : Staff
     {
+        // Parameterless constructor for EF Core
+        public ManagementStaff() : base(string.Empty, 0) { }
         public ManagementStaff(string name, int memberId) : base(name, memberId) { }
         public override string GetMemberType() => "Management Staff";
         public override bool CanBorrowBooks() => true;
