@@ -1,4 +1,5 @@
-﻿using LibrarySystemMinimalApi.Data.InMemoryStorage;
+﻿using LibrarySystemMinimalApi.Data.Context;
+using LibrarySystemMinimalApi.Data.InMemoryStorage;
 using LibrarySystemMinimalApi.Data.Repositories.Interface;
 using LibrarySystemMinimalApi.Domain.Entities.Members;
 using System;
@@ -11,32 +12,44 @@ namespace LibrarySystemMinimalApi.Data.Repositories
 {
     public class MemberRepository : IMemberRepository
     {
-        private readonly DataStorage dataStorage;
+        private readonly LibraryDbContext context;
 
-        public MemberRepository(DataStorage dataStorage)
+        public MemberRepository(LibraryDbContext context)
         {
-            this.dataStorage = dataStorage ?? throw new ArgumentNullException(nameof(dataStorage));
+            this.context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public void Add(Member member)
         {
             if (member == null) throw new ArgumentNullException(nameof(member));
-            dataStorage.Members.Add(member);
+
+            context.Members.Add(member);
+            context.SaveChanges();
         }
 
-        public Member GetById(int memberId)
+        public Member  GetById(int memberId)
         {
-            return dataStorage.Members.FirstOrDefault(m => m.MemberID == memberId);
+            var member = context.Members.FirstOrDefault(m => m.MemberID == memberId);
+            if (member == null)
+                throw new InvalidOperationException($"Member with ID {memberId} not found.");
+
+            return member;
         }
 
         public IEnumerable<Member> GetAll()
         {
-            return dataStorage.Members.AsReadOnly();
+            return context.Members
+                .OrderBy(m => m.Name)
+                .ToList();
         }
-
         public int GetNextMemberId()
         {
-            return dataStorage.NextMemberId++;
+            //Since auto increment is being used i am not sure that if this is needed....
+            var lastMember = context.Members
+                .OrderByDescending(m => m.MemberID)
+                .FirstOrDefault();
+
+            return lastMember?.MemberID + 1 ?? 1;
         }
     }
 }

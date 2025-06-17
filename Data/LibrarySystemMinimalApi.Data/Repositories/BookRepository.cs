@@ -1,6 +1,8 @@
-﻿using LibrarySystemMinimalApi.Data.InMemoryStorage;
+﻿using LibrarySystemMinimalApi.Data.Context;
+using LibrarySystemMinimalApi.Data.InMemoryStorage;
 using LibrarySystemMinimalApi.Data.Repositories.Interface;
 using LibrarySystemMinimalApi.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,35 +13,47 @@ namespace LibrarySystemMinimalApi.Data.Repositories
 {
     public class BookRepository : IBookRepository
     {
-        private readonly DataStorage dataStorage;
+        private readonly LibraryDbContext context;
 
-        public BookRepository(DataStorage dataStorage)
+        public BookRepository(LibraryDbContext context)
         {
-            this.dataStorage = dataStorage ?? throw new ArgumentNullException(nameof(dataStorage));
+            this.context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public void Add(Book book)
         {
             if (book == null) throw new ArgumentNullException(nameof(book));
-            dataStorage.Books.Add(book);
+
+            context.Books.Add(book);
+            context.SaveChanges();
         }
 
         public void Remove(Book book)
         {
             if (book == null) throw new ArgumentNullException(nameof(book));
-            dataStorage.Books.Remove(book);
+
+            context.Books.Remove(book);
+            context.SaveChanges();
         }
 
-        public Book GetByTitleAndYear(string title, int publicationYear)
+        public Book GetByTitleAndYear (string title, int publicationYear) 
         {
-            return dataStorage.Books.FirstOrDefault(b =>
-                string.Equals(b.Title, title, StringComparison.OrdinalIgnoreCase) &&
-                b.PublicationYear == publicationYear);
+            var book = context.Books.FirstOrDefault(b =>
+            EF.Functions.Like(b.Title, title) &&
+            b.PublicationYear == publicationYear);
+
+            if (book == null)
+                throw new InvalidOperationException($"No book found with title '{title}' and year {publicationYear}.");
+
+            return book;
         }
 
         public IEnumerable<Book> GetAll()
         {
-            return dataStorage.Books.AsReadOnly();
+            return context.Books
+                .OrderBy(b => b.Title)
+                .ThenBy(b => b.PublicationYear)
+                .ToList();
         }
     }
 }

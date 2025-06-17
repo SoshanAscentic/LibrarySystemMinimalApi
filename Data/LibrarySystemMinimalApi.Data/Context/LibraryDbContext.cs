@@ -56,4 +56,5 @@ namespace LibrarySystemMinimalApi.Data.Context
                 }
             );
         }
+    }
 }
