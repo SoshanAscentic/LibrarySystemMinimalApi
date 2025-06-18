@@ -1,21 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LibrarySystemMinimalApi.Domain.Entities.Members
+﻿namespace LibrarySystemMinimalApi.Domain.Entities.Members
 {
     public abstract class Member
     {
-        public string Name { get; set; }
-        public int MemberID { get; private set; }
+        private string name;
+
+        public string Name
+        {
+            get => name ?? string.Empty; // Return empty string if null to avoid null reference issues
+            set => name = value; // No validation in setter for EF Core compatibility
+        }
+
+        public int MemberID { get; protected set; }
         public int BorrowedBooksCount { get; set; } = 0;
 
-        protected Member(string name, int memberId)
+        // Parameterless constructor for EF Core
+        protected Member() { }
+
+        protected Member(string name)
         {
-            Name = string.IsNullOrWhiteSpace(name) ? throw new ArgumentException("Name cannot be empty") : name;
-            MemberID = memberId > 0 ? memberId : throw new ArgumentException("Member ID must be positive");
+            // Validation only in the constructor used for creating new entities
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Name cannot be empty", nameof(name));
+            this.name = name;
         }
 
         public abstract string GetMemberType();
@@ -28,6 +34,5 @@ namespace LibrarySystemMinimalApi.Domain.Entities.Members
         {
             return $"Name: {Name}, ID: {MemberID}, Type: {GetMemberType()}, Borrowed Books: {BorrowedBooksCount}";
         }
-
     }
 }

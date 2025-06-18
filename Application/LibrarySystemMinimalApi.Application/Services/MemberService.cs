@@ -1,16 +1,9 @@
 ﻿using AutoMapper;
-using AutoMapper.Execution;
 using LibrarySystemMinimalApi.Application.DTOs;
 using LibrarySystemMinimalApi.Application.Interfaces;
 using LibrarySystemMinimalApi.Data.Repositories.Interface;
-using LibrarySystemMinimalApi.Domain.Entities;
 using LibrarySystemMinimalApi.Domain.Entities.Members;
 using LibrarySystemMinimalApi.Domain.Entities.Staff;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Member = LibrarySystemMinimalApi.Domain.Entities.Members.Member;
 
 namespace LibrarySystemMinimalApi.Application.Services
@@ -34,8 +27,8 @@ namespace LibrarySystemMinimalApi.Application.Services
             if (string.IsNullOrWhiteSpace(createMemberDto.Name))
                 throw new ArgumentException("Member name cannot be null or empty.", nameof(createMemberDto.Name));
 
-            var memberId = memberRepository.GetNextMemberId();
-            var member = CreateMember(createMemberDto.Name.Trim(), createMemberDto.MemberType, memberId);
+            // Don't generate ID manually - let EF Core handle it
+            var member = CreateMember(createMemberDto.Name.Trim(), createMemberDto.MemberType);
 
             memberRepository.Add(member);
             return mapper.Map<MemberDto>(member);
@@ -56,13 +49,13 @@ namespace LibrarySystemMinimalApi.Application.Services
             return member == null ? null : mapper.Map<MemberDto>(member);
         }
 
-        private static Member CreateMember(string name, int memberType, int memberId)
+        private static Member CreateMember(string name, int memberType)
         {
             return memberType switch
             {
-                0 => new RegularMember(name, memberId),
-                1 => new MinorStaff(name, memberId),
-                2 => new ManagementStaff(name, memberId),
+                0 => new RegularMember(name),           // No ID parameter
+                1 => new MinorStaff(name),              // No ID parameter  
+                2 => new ManagementStaff(name),         // No ID parameter
                 _ => throw new ArgumentException($"Invalid member type: {memberType}. Valid types are 0 (Member), 1 (Minor Staff), 2 (Management Staff).")
             };
         }

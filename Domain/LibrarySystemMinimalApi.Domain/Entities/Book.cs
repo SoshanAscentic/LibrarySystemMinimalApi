@@ -51,10 +51,13 @@ namespace LibrarySystemMinimalApi.Domain.Entities
         public BookCategory Category { get; set; }
         public bool IsAvailable { get; set; }
 
+        // Parameterless constructor for EF Core
+        public Book() { }
+
         public Book(string title, string author, int publicationYear, BookCategory category)
         {
-            Title = title;
-            Author = author;
+            Title = title.Trim();
+            Author = author.Trim();
             PublicationYear = publicationYear;
             Category = category;
             IsAvailable = true;

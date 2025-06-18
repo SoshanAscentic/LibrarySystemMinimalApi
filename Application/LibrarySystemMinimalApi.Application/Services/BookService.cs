@@ -3,11 +3,6 @@ using LibrarySystemMinimalApi.Application.DTOs;
 using LibrarySystemMinimalApi.Application.Interfaces;
 using LibrarySystemMinimalApi.Data.Repositories.Interface;
 using LibrarySystemMinimalApi.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LibrarySystemMinimalApi.Application.Services
 {
@@ -27,14 +22,24 @@ namespace LibrarySystemMinimalApi.Application.Services
             if (createBookDto == null)
                 throw new ArgumentNullException(nameof(createBookDto));
 
+            Console.WriteLine($"DEBUG: Adding book - Title: '{createBookDto.Title}', Year: {createBookDto.PublicationYear}");
+
+            // Check if book already exists
             var existingBook = bookRepository.GetByTitleAndYear(createBookDto.Title, createBookDto.PublicationYear);
             if (existingBook != null)
+            {
+                Console.WriteLine($"DEBUG: Book already exists!");
                 throw new InvalidOperationException("A book with the same title and publication year already exists.");
+            }
 
+            Console.WriteLine($"DEBUG: Creating new book entity");
             var category = (Book.BookCategory)createBookDto.Category;
             var book = new Book(createBookDto.Title, createBookDto.Author, createBookDto.PublicationYear, category);
 
+            Console.WriteLine($"DEBUG: Adding book to repository");
             bookRepository.Add(book);
+
+            Console.WriteLine($"DEBUG: Book added successfully");
             return mapper.Map<BookDto>(book);
         }
 
