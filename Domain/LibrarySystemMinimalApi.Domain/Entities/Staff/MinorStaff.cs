@@ -9,7 +9,7 @@ namespace LibrarySystemMinimalApi.Domain.Entities.Staff
     public class MinorStaff : Staff
     {
         // Parameterless constructor for EF Core
-        public MinorStaff() : base(string.Empty) { }
+        public MinorStaff() { }
 
         public MinorStaff(string name) : base(name) { }
 

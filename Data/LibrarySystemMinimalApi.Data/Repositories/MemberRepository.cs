@@ -27,13 +27,10 @@ namespace LibrarySystemMinimalApi.Data.Repositories
             context.SaveChanges();
         }
 
-        public Member  GetById(int memberId)
+        public Member GetById(int memberId)
         {
-            var member = context.Members.FirstOrDefault(m => m.MemberID == memberId);
-            if (member == null)
-                throw new InvalidOperationException($"Member with ID {memberId} not found.");
-
-            return member;
+            // Return null instead of throwing exception when member not found
+            return context.Members.FirstOrDefault(m => m.MemberID == memberId);
         }
 
         public IEnumerable<Member> GetAll()
@@ -42,6 +39,7 @@ namespace LibrarySystemMinimalApi.Data.Repositories
                 .OrderBy(m => m.Name)
                 .ToList();
         }
+
         public int GetNextMemberId()
         {
             //Since auto increment is being used i am not sure that if this is needed....
