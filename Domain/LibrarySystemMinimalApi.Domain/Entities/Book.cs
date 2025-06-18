@@ -56,8 +56,8 @@ namespace LibrarySystemMinimalApi.Domain.Entities
 
         public Book(string title, string author, int publicationYear, BookCategory category)
         {
-            Title = title;
-            Author = author;
+            Title = title.Trim();
+            Author = author.Trim();
             PublicationYear = publicationYear;
             Category = category;
             IsAvailable = true;
