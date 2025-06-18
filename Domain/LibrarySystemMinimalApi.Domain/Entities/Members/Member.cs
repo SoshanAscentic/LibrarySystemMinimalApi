@@ -1,4 +1,5 @@
-﻿namespace LibrarySystemMinimalApi.Domain.Entities.Members
+﻿// Member.cs
+namespace LibrarySystemMinimalApi.Domain.Entities.Members
 {
     public abstract class Member
     {
@@ -9,10 +10,12 @@
         // Parameterless constructor for EF Core
         protected Member() { }
 
-        protected Member(string name, int memberId)
+
+        protected Member(string name)
         {
-            Name = string.IsNullOrWhiteSpace(name) ? throw new ArgumentException("Name cannot be empty") : name;
-            MemberID = memberId > 0 ? memberId : throw new ArgumentException("Member ID must be positive");
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Name cannot be empty", nameof(name));
+            Name = name;
         }
 
         public abstract string GetMemberType();

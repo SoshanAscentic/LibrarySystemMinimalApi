@@ -8,11 +8,10 @@ namespace LibrarySystemMinimalApi.Domain.Entities.Members
 {
     public class RegularMember : Member
     {
-
         // Parameterless constructor for EF Core
         public RegularMember() { }
 
-        public RegularMember(string name, int memberId) : base(name, memberId) { }
+        public RegularMember(string name) : base(name) { }
 
         public override string GetMemberType() => "Member";
         public override bool CanBorrowBooks() => true;

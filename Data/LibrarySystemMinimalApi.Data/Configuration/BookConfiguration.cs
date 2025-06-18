@@ -14,7 +14,7 @@ namespace LibrarySystemMinimalApi.Data.Configuration
         public void Configure(EntityTypeBuilder<Book> builder)
         {
             //Primary Key : Composite key using Title and PublicationYear
-            builder.HasKey(b => new { b.Title, b.PublicationYear }); 
+            builder.HasKey(b => new { b.Title, b.PublicationYear });
 
             //Properties
             builder.Property(b => b.Title)
@@ -46,6 +46,29 @@ namespace LibrarySystemMinimalApi.Data.Configuration
 
             builder.HasIndex(b => b.Category)
                 .HasDatabaseName("IX_Books_Category");
+
+            builder.HasData(
+                new Book("The Great Gatsby", "F. Scott Fitzgerald", 1925, Book.BookCategory.Fiction)
+                {
+                    IsAvailable = true
+                },
+                new Book("To Kill a Mockingbird", "Harper Lee", 1960, Book.BookCategory.Fiction)
+                {
+                    IsAvailable = true
+                },
+                new Book("1984", "George Orwell", 1949, Book.BookCategory.Fiction)
+                {
+                    IsAvailable = true
+                },
+                new Book("A Brief History of Time", "Stephen Hawking", 1988, Book.BookCategory.History)
+                {
+                    IsAvailable = true
+                },
+                new Book("The Very Hungry Caterpillar", "Eric Carle", 1969, Book.BookCategory.Child)
+                {
+                    IsAvailable = true
+                }
+            );
         }
     }
 }

@@ -32,6 +32,17 @@ builder.Services.AddSwaggerGen(options =>
     options.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+
 //Reigster Data and Application Services
 builder.Services.AddDataServices(builder.Configuration);
 builder.Services.AddApplicationServices();
@@ -120,6 +131,8 @@ using (var scope = app.Services.CreateScope())
     .WithSummary("API health check")
     .Produces<object>(StatusCodes.Status200OK)
     .WithOpenApi();
+
+    app.UseCors("AllowAll");
 
     app.Run();
 }
