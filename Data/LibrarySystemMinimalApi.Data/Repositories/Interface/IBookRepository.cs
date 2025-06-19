@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 
 namespace LibrarySystemMinimalApi.Data.Repositories.Interface
 {
-    public interface IBookRepository
+    public interface IBookRepository : IBaseRepository<Book>
     {
-        void Add(Book book);
-        void Remove(Book book);
         Book GetByTitleAndYear(string title, int publicationYear);
-        IEnumerable<Book> GetAll();
+        Task<Book> GetByTitleAndYearAsync(string title, int publicationYear);
+        IEnumerable<Book> GetByCategory(Book.BookCategory category);
+        IEnumerable<Book> GetAvailableBooks();
+        IEnumerable<Book> GetByAuthor(string author);
     }
 }

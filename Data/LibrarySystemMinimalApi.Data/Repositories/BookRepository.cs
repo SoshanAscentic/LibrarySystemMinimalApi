@@ -1,48 +1,70 @@
 ﻿using LibrarySystemMinimalApi.Data.Context;
 using LibrarySystemMinimalApi.Data.Repositories.Interface;
 using LibrarySystemMinimalApi.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace LibrarySystemMinimalApi.Data.Repositories
 {
-    public class BookRepository : IBookRepository
+    public class BookRepository : BaseRepository<Book>, IBookRepository
     {
-        private readonly LibraryDbContext context;
+        public BookRepository(LibraryDbContext context) : base(context) { }
 
-        public BookRepository(LibraryDbContext context)
-        {
-            this.context = context ?? throw new ArgumentNullException(nameof(context));
-        }
-
-        public void Add(Book book)
+        
+        public override void Add(Book book)
         {
             if (book == null) throw new ArgumentNullException(nameof(book));
 
-            context.Books.Add(book);
-            context.SaveChanges();
+            base.Add(book);
+            SaveChanges(); 
         }
 
-        public void Remove(Book book)
+        public override void Remove(Book book)
         {
             if (book == null) throw new ArgumentNullException(nameof(book));
 
-            context.Books.Remove(book);
-            context.SaveChanges();
+            base.Remove(book);
+            SaveChanges(); 
         }
 
-        public Book GetByTitleAndYear(string title, int publicationYear)
+        public override IEnumerable<Book> GetAll()
         {
-            // Use direct string comparison instead of EF.Functions.Like
-            return context.Books.FirstOrDefault(b =>
-                b.Title == title &&  // Direct comparison
-                b.PublicationYear == publicationYear);
-        }
-
-        public IEnumerable<Book> GetAll()
-        {
-            return context.Books
+            return dbSet
                 .OrderBy(b => b.Title)
                 .ThenBy(b => b.PublicationYear)
                 .ToList();
+        }
+
+        // Specific Book methods
+        public Book GetByTitleAndYear(string title, int publicationYear)
+        {
+            return GetFirstOrDefault(b =>
+                b.Title == title &&
+                b.PublicationYear == publicationYear);
+        }
+
+        public async Task<Book> GetByTitleAndYearAsync(string title, int publicationYear)
+        {
+            return await GetFirstOrDefaultAsync(b =>
+                b.Title == title &&
+                b.PublicationYear == publicationYear);
+        }
+
+        public IEnumerable<Book> GetByCategory(Book.BookCategory category)
+        {
+            return Find(b => b.Category == category);
+        }
+
+        public IEnumerable<Book> GetAvailableBooks()
+        {
+            return Find(b => b.IsAvailable);
+        }
+
+        public IEnumerable<Book> GetByAuthor(string author)
+        {
+            if (string.IsNullOrWhiteSpace(author))
+                return Enumerable.Empty<Book>();
+
+            return Find(b => b.Author.Contains(author));
         }
     }
 }

@@ -2,6 +2,7 @@
 using LibrarySystemMinimalApi.Data.InMemoryStorage;
 using LibrarySystemMinimalApi.Data.Repositories.Interface;
 using LibrarySystemMinimalApi.Domain.Entities.Members;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,40 +11,49 @@ using System.Threading.Tasks;
 
 namespace LibrarySystemMinimalApi.Data.Repositories
 {
-    public class MemberRepository : IMemberRepository
+    public class MemberRepository : BaseRepository<Member>, IMemberRepository
     {
-        private readonly LibraryDbContext context;
+        public MemberRepository(LibraryDbContext context) : base(context) { }
 
-        public MemberRepository(LibraryDbContext context)
-        {
-            this.context = context ?? throw new ArgumentNullException(nameof(context));
-        }
-
-        public void Add(Member member)
+        
+        public override void Add(Member member)
         {
             if (member == null) throw new ArgumentNullException(nameof(member));
 
-            context.Members.Add(member);
-            context.SaveChanges();
+            base.Add(member);
+            SaveChanges(); 
         }
 
-        public Member GetById(int memberId)
+        public override IEnumerable<Member> GetAll()
         {
-            // Return null instead of throwing exception when member not found
-            return context.Members.FirstOrDefault(m => m.MemberID == memberId);
-        }
-
-        public IEnumerable<Member> GetAll()
-        {
-            return context.Members
+            return dbSet
                 .OrderBy(m => m.Name)
                 .ToList();
         }
 
+        // Your existing method with validation
+        public Member GetByIdWithValidation(int memberId)
+        {
+            var member = GetById(memberId);
+            if (member == null)
+                throw new InvalidOperationException($"Member with ID {memberId} not found.");
+            return member;
+        }
+
+        // Specific Member methods
+        public IEnumerable<Member> GetByMemberType<TMember>() where TMember : Member
+        {
+            return dbSet.OfType<TMember>().ToList();
+        }
+
+        public IEnumerable<Member> GetMembersWithBorrowedBooks()
+        {
+            return Find(m => m.BorrowedBooksCount > 0);
+        }
+
         public int GetNextMemberId()
         {
-            //Since auto increment is being used i am not sure that if this is needed....
-            var lastMember = context.Members
+            var lastMember = dbSet
                 .OrderByDescending(m => m.MemberID)
                 .FirstOrDefault();
 

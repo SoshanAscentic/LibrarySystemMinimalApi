@@ -17,19 +17,20 @@ namespace LibrarySystemMinimalApi.Data.Extensions
     {
         public static IServiceCollection AddDataServices(this IServiceCollection services, IConfiguration configuration)
         {
-            //services.AddSingleton<DataStorage>();
-
             // Register DbContext with SQL server
             services.AddDbContext<LibraryDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
                     b => b.MigrationsAssembly("LibrarySystemMinimalApi.Data")));
 
+            // Register Generic Base Repository (optional, for direct injection)
+            services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 
-            //Resgister Repositories with Scoped lifetime
+            // Register Specific Repositories
             services.AddScoped<IBookRepository, BookRepository>();
             services.AddScoped<IMemberRepository, MemberRepository>();
 
             return services;
         }
     }
+
 }

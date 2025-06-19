@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 
 namespace LibrarySystemMinimalApi.Data.Repositories.Interface
 {
-    public interface IMemberRepository
+    public interface IMemberRepository : IBaseRepository<Member>
     {
-        void Add(Member member);
-        Member GetById(int memberId);
-        IEnumerable<Member> GetAll();
+        // Specific methods for Member entity
+        Member GetByIdWithValidation(int memberId);
+        IEnumerable<Member> GetByMemberType<TMember>() where TMember : Member;
+        IEnumerable<Member> GetMembersWithBorrowedBooks();
         int GetNextMemberId();
     }
 }
