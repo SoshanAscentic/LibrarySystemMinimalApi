@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using LibrarySystemMinimalApi.Application.DTOs;
 using LibrarySystemMinimalApi.Application.Interfaces;
+using LibrarySystemMinimalApi.Data.Repositories;
 using LibrarySystemMinimalApi.Data.Repositories.Interface;
 using LibrarySystemMinimalApi.Domain.Entities;
 
@@ -11,6 +12,7 @@ namespace LibrarySystemMinimalApi.Application.Services
         private readonly IBookRepository bookRepository;
         private readonly IMapper mapper;
 
+        //Usual methods for book management:
         public BookService(IBookRepository bookRepository, IMapper mapper)
         {
             this.bookRepository = bookRepository ?? throw new ArgumentNullException(nameof(bookRepository));
@@ -72,6 +74,47 @@ namespace LibrarySystemMinimalApi.Application.Services
 
             var book = bookRepository.GetByTitleAndYear(title, publicationYear);
             return book == null ? null : mapper.Map<BookDto>(book);
+        }
+
+
+        //Additional methods for book management:
+        public IEnumerable<BookDto> GetBooksByCategory(string category)
+        {
+            if (!Enum.TryParse<Book.BookCategory>(category, true, out var bookCategory))
+                throw new ArgumentException($"Invalid category: {category}. Valid categories are: Fiction, History, Child");
+
+            var books = bookRepository.GetByCategory(bookCategory);
+            return mapper.Map<IEnumerable<BookDto>>(books);
+        }
+
+        public IEnumerable<BookDto> GetAvailableBooks()
+        {
+            var books = bookRepository.GetAvailableBooks();
+            return mapper.Map<IEnumerable<BookDto>>(books);
+        }
+
+        public IEnumerable<BookDto> GetBooksByAuthor(string author)
+        {
+            if (string.IsNullOrWhiteSpace(author))
+                throw new ArgumentException("Author cannot be null or empty.", nameof(author));
+
+            var books = bookRepository.GetByAuthor(author);
+            return mapper.Map<IEnumerable<BookDto>>(books);
+        }
+
+        public async Task<IEnumerable<BookDto>> GetBooksByCategoryAsync(string category)
+        {
+            if (!Enum.TryParse<Book.BookCategory>(category, true, out var bookCategory))
+                throw new ArgumentException($"Invalid category: {category}");
+
+            var books = bookRepository.GetByCategory(bookCategory); 
+            return mapper.Map<IEnumerable<BookDto>>(books);
+        }
+
+        public async Task<bool> IsBookAvailableAsync(string title, int year)
+        {
+            var book = await bookRepository.GetByTitleAndYearAsync(title, year);
+            return book?.IsAvailable ?? false;
         }
     }
 }
