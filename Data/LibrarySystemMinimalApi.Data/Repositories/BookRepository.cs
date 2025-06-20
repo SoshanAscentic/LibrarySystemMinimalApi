@@ -9,13 +9,19 @@ namespace LibrarySystemMinimalApi.Data.Repositories
     {
         public BookRepository(LibraryDbContext context) : base(context) { }
 
-        
         public override void Add(Book book)
         {
             if (book == null) throw new ArgumentNullException(nameof(book));
 
+            // Check for duplicate title + year combination
+            var existingBook = GetByTitleAndYear(book.Title, book.PublicationYear);
+            if (existingBook != null)
+            {
+                throw new InvalidOperationException("A book with the same title and publication year already exists.");
+            }
+
             base.Add(book);
-            SaveChanges(); 
+            SaveChanges();
         }
 
         public override void Remove(Book book)
@@ -23,7 +29,7 @@ namespace LibrarySystemMinimalApi.Data.Repositories
             if (book == null) throw new ArgumentNullException(nameof(book));
 
             base.Remove(book);
-            SaveChanges(); 
+            SaveChanges();
         }
 
         public override IEnumerable<Book> GetAll()
@@ -34,7 +40,17 @@ namespace LibrarySystemMinimalApi.Data.Repositories
                 .ToList();
         }
 
-        // Specific Book methods
+        public Book GetByBookId(int bookId)
+        {
+            return GetById(bookId);
+        }
+
+        public async Task<Book> GetByBookIdAsync(int bookId)
+        {
+            return await GetByIdAsync(bookId);
+        }
+
+        // Existing Title + Year methods (kept for backwards compatibility)
         public Book GetByTitleAndYear(string title, int publicationYear)
         {
             return GetFirstOrDefault(b =>

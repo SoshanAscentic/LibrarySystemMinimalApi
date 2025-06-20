@@ -13,8 +13,8 @@ namespace LibrarySystemMinimalApi.Data.Configuration
     {
         public void Configure(EntityTypeBuilder<Book> builder)
         {
-            //Primary Key : Composite key using Title and PublicationYear
-            builder.HasKey(b => new { b.Title, b.PublicationYear });
+            //Primary Key : BookId
+            builder.HasKey(b => b.BookId);
 
             //Properties
             builder.Property(b => b.Title)
@@ -46,6 +46,10 @@ namespace LibrarySystemMinimalApi.Data.Configuration
 
             builder.HasIndex(b => b.Category)
                 .HasDatabaseName("IX_Books_Category");
+
+            builder.HasIndex(b => new { b.Title, b.PublicationYear })
+                .IsUnique()
+                .HasDatabaseName("IX_Books_Title_PublicationYear");
 
             builder.HasData(
                 new Book("The Great Gatsby", "F. Scott Fitzgerald", 1925, Book.BookCategory.Fiction)

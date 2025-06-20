@@ -12,7 +12,6 @@ namespace LibrarySystemMinimalApi.Application.Services
         private readonly IBookRepository bookRepository;
         private readonly IMapper mapper;
 
-        //Usual methods for book management:
         public BookService(IBookRepository bookRepository, IMapper mapper)
         {
             this.bookRepository = bookRepository ?? throw new ArgumentNullException(nameof(bookRepository));
@@ -26,15 +25,6 @@ namespace LibrarySystemMinimalApi.Application.Services
 
             Console.WriteLine($"DEBUG: Adding book - Title: '{createBookDto.Title}', Year: {createBookDto.PublicationYear}");
 
-            // Check if book already exists
-            var existingBook = bookRepository.GetByTitleAndYear(createBookDto.Title, createBookDto.PublicationYear);
-            if (existingBook != null)
-            {
-                Console.WriteLine($"DEBUG: Book already exists!");
-                throw new InvalidOperationException("A book with the same title and publication year already exists.");
-            }
-
-            Console.WriteLine($"DEBUG: Creating new book entity");
             var category = (Book.BookCategory)createBookDto.Category;
             var book = new Book(createBookDto.Title, createBookDto.Author, createBookDto.PublicationYear, category);
 
@@ -45,12 +35,9 @@ namespace LibrarySystemMinimalApi.Application.Services
             return mapper.Map<BookDto>(book);
         }
 
-        public bool RemoveBook(string title, int publicationYear)
+        public bool RemoveBook(int bookId)
         {
-            if (string.IsNullOrWhiteSpace(title))
-                throw new ArgumentException("Title cannot be null or empty.", nameof(title));
-
-            var book = bookRepository.GetByTitleAndYear(title, publicationYear);
+            var book = bookRepository.GetByBookId(bookId);
             if (book == null)
                 return false;
 
@@ -61,23 +48,24 @@ namespace LibrarySystemMinimalApi.Application.Services
             return true;
         }
 
+        public BookDto GetBook(int bookId)
+        {
+            var book = bookRepository.GetByBookId(bookId);
+            return book == null ? null : mapper.Map<BookDto>(book);
+        }
+
+        public async Task<bool> IsBookAvailableAsync(int bookId)
+        {
+            var book = await bookRepository.GetByBookIdAsync(bookId);
+            return book?.IsAvailable ?? false;
+        }
+
         public IEnumerable<BookDto> GetAllBooks()
         {
             var books = bookRepository.GetAll();
             return mapper.Map<IEnumerable<BookDto>>(books);
         }
 
-        public BookDto GetBook(string title, int publicationYear)
-        {
-            if (string.IsNullOrWhiteSpace(title))
-                throw new ArgumentException("Title cannot be null or empty.", nameof(title));
-
-            var book = bookRepository.GetByTitleAndYear(title, publicationYear);
-            return book == null ? null : mapper.Map<BookDto>(book);
-        }
-
-
-        //Additional methods for book management:
         public IEnumerable<BookDto> GetBooksByCategory(string category)
         {
             if (!Enum.TryParse<Book.BookCategory>(category, true, out var bookCategory))
@@ -107,14 +95,8 @@ namespace LibrarySystemMinimalApi.Application.Services
             if (!Enum.TryParse<Book.BookCategory>(category, true, out var bookCategory))
                 throw new ArgumentException($"Invalid category: {category}");
 
-            var books = bookRepository.GetByCategory(bookCategory); 
+            var books = bookRepository.GetByCategory(bookCategory);
             return mapper.Map<IEnumerable<BookDto>>(books);
-        }
-
-        public async Task<bool> IsBookAvailableAsync(string title, int year)
-        {
-            var book = await bookRepository.GetByTitleAndYearAsync(title, year);
-            return book?.IsAvailable ?? false;
         }
     }
 }

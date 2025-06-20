@@ -10,13 +10,15 @@ namespace LibrarySystemMinimalApi.Application.Interfaces
     public interface IBookService
     {
         BookDto AddBook(CreateBookDto createBookDto);
-        bool RemoveBook(string title, int publicationYear);
+
+        bool RemoveBook(int bookId);
+        BookDto GetBook(int bookId);
+        Task<bool> IsBookAvailableAsync(int bookId);
+
         IEnumerable<BookDto> GetAllBooks();
-        BookDto GetBook(string title, int publicationYear);
         IEnumerable<BookDto> GetBooksByCategory(string category);
         IEnumerable<BookDto> GetAvailableBooks();
         IEnumerable<BookDto> GetBooksByAuthor(string author);
         Task<IEnumerable<BookDto>> GetBooksByCategoryAsync(string category);
-        Task<bool> IsBookAvailableAsync(string title, int year);
     }
 }

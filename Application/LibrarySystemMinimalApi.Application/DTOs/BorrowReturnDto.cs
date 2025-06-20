@@ -10,12 +10,7 @@ namespace LibrarySystemMinimalApi.Application.DTOs
     public class BorrowReturnDto
     {
         [Required]
-        [StringLength(200, MinimumLength = 1)]
-
-        public string? Title { get; set; }
-
-        [Range(1450, 2024)]
-        public int PublicationYear { get; set; }
+        public int BookId { get; set; }
 
         [Required]
         public int MemberID { get; set; }

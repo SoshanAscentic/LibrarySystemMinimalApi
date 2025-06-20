@@ -31,23 +31,19 @@ namespace LibrarySystemMinimalApi.Api.Endpoints
             .Produces<IEnumerable<BookDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status500InternalServerError);
 
-            // GET /api/books/{title}/{year}
-            group.MapGet("/{title}/{year}", async (
-                string title,
-                int year,
+            // GET /api/books/{bookId}
+            group.MapGet("/{bookId:int}", async (
+                int bookId,
                 IBookService bookService) =>
             {
-                if (string.IsNullOrWhiteSpace(title))
-                    return Results.BadRequest("Title cannot be empty.");
-
-                if (year < 1450 || year > DateTime.Now.Year)
-                    return Results.BadRequest($"Publication year must be between 1450 and {DateTime.Now.Year}.");
+                if (bookId <= 0)
+                    return Results.BadRequest("Book ID must be positive.");
 
                 try
                 {
-                    var book = bookService.GetBook(title, year);
+                    var book = bookService.GetBook(bookId);
                     if (book == null)
-                        return Results.NotFound($"Book '{title}' ({year}) not found.");
+                        return Results.NotFound($"Book with ID {bookId} not found.");
 
                     return Results.Ok(book);
                 }
@@ -60,13 +56,14 @@ namespace LibrarySystemMinimalApi.Api.Endpoints
                     return Results.Problem("An error occurred while retrieving the book.");
                 }
             })
-            .WithName("GetBook")
-            .WithSummary("Get a specific book by title and publication year")
+            .WithName("GetBookById")
+            .WithSummary("Get a specific book by ID")
             .Produces<BookDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status500InternalServerError);
 
+            
             // POST /api/books
             group.MapPost("/", async (
                 [FromBody] CreateBookDto createBookDto,
@@ -75,7 +72,7 @@ namespace LibrarySystemMinimalApi.Api.Endpoints
                 try
                 {
                     var book = bookService.AddBook(createBookDto);
-                    return Results.Created($"/api/books/{book.Title}/{book.PublicationYear}", book);
+                    return Results.Created($"/api/books/{book.BookId}", book);
                 }
                 catch (ArgumentException ex)
                 {
@@ -97,23 +94,19 @@ namespace LibrarySystemMinimalApi.Api.Endpoints
             .Produces(StatusCodes.Status409Conflict)
             .Produces(StatusCodes.Status500InternalServerError);
 
-            // DELETE /api/books/{title}/{year}
-            group.MapDelete("/{title}/{year}", async (
-                string title,
-                int year,
+            // DELETE /api/books/{bookId}
+            group.MapDelete("/{bookId:int}", async (
+                int bookId,
                 IBookService bookService) =>
             {
-                if (string.IsNullOrWhiteSpace(title))
-                    return Results.BadRequest("Title cannot be empty.");
-
-                if (year < 1450 || year > DateTime.Now.Year)
-                    return Results.BadRequest($"Publication year must be between 1450 and {DateTime.Now.Year}.");
+                if (bookId <= 0)
+                    return Results.BadRequest("Book ID must be positive.");
 
                 try
                 {
-                    var success = bookService.RemoveBook(title, year);
+                    var success = bookService.RemoveBook(bookId);
                     if (!success)
-                        return Results.NotFound($"Book '{title}' ({year}) not found.");
+                        return Results.NotFound($"Book with ID {bookId} not found.");
 
                     return Results.NoContent();
                 }
@@ -131,11 +124,13 @@ namespace LibrarySystemMinimalApi.Api.Endpoints
                 }
             })
             .WithName("RemoveBook")
-            .WithSummary("Remove a book from the library")
+            .WithSummary("Remove a book from the library by ID")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status500InternalServerError);
+
+           
 
             // GET /api/books/available
             group.MapGet("/available", async (IBookService bookService) =>
@@ -211,26 +206,20 @@ namespace LibrarySystemMinimalApi.Api.Endpoints
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-
-            // GET /api/books/check-availability/{title}/{year}
-            group.MapGet("/check-availability/{title}/{year}", async (
-                string title,
-                int year,
+            //GET /api/books/{bookId}/check-availability
+            group.MapGet("/{bookId:int}/check-availability", async (
+                int bookId,
                 IBookService bookService) =>
             {
-                if (string.IsNullOrWhiteSpace(title))
-                    return Results.BadRequest("Title cannot be empty.");
-
-                if (year < 1450 || year > DateTime.Now.Year)
-                    return Results.BadRequest($"Publication year must be between 1450 and {DateTime.Now.Year}.");
+                if (bookId <= 0)
+                    return Results.BadRequest("Book ID must be positive.");
 
                 try
                 {
-                    var isAvailable = await bookService.IsBookAvailableAsync(title, year);
+                    var isAvailable = await bookService.IsBookAvailableAsync(bookId);
                     return Results.Ok(new
                     {
-                        title = title,
-                        year = year,
+                        bookId = bookId,
                         isAvailable = isAvailable
                     });
                 }
@@ -240,10 +229,11 @@ namespace LibrarySystemMinimalApi.Api.Endpoints
                 }
             })
             .WithName("CheckBookAvailability")
-            .WithSummary("Check if a specific book is available for borrowing")
+            .WithSummary("Check if a specific book is available for borrowing by ID")
             .Produces<object>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
+
         }
     }
 }
