@@ -6,11 +6,11 @@
 
         public string Name
         {
-            get => name ?? string.Empty; // Return empty string if null to avoid null reference issues
-            set => name = value; // No validation in setter for EF Core compatibility
+            get => name ?? string.Empty;
+            set => name = value;
         }
 
-        public int MemberID { get; protected set; }
+        public int MemberID { get; set; } // EF Core will auto-generate this
         public int BorrowedBooksCount { get; set; } = 0;
 
         // Parameterless constructor for EF Core
@@ -18,7 +18,6 @@
 
         protected Member(string name)
         {
-            // Validation only in the constructor used for creating new entities
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Name cannot be empty", nameof(name));
             this.name = name;

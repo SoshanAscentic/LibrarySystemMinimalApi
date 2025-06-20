@@ -15,7 +15,8 @@ namespace LibrarySystemMinimalApi.Api.Endpoints
             // POST /api/auth/login
             group.MapPost("/login", async (
                 [FromBody] LoginDto loginDto,
-                IAuthenticationService authService) =>
+                IAuthenticationService authService,
+                ILogger<Program> logger) =>
             {
                 try
                 {
@@ -27,10 +28,12 @@ namespace LibrarySystemMinimalApi.Api.Endpoints
                 }
                 catch (ArgumentException ex)
                 {
+                    logger.LogWarning("Login validation error: {Message}", ex.Message);
                     return Results.BadRequest(ex.Message);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    logger.LogError(ex, "An error occurred during login for MemberID: {MemberID}", loginDto?.MemberID);
                     return Results.Problem("An error occurred during login.");
                 }
             })
@@ -44,19 +47,29 @@ namespace LibrarySystemMinimalApi.Api.Endpoints
             // POST /api/auth/signup
             group.MapPost("/signup", async (
                 [FromBody] CreateMemberDto createMemberDto,
-                IAuthenticationService authService) =>
+                IAuthenticationService authService,
+                ILogger<Program> logger) =>
             {
                 try
                 {
+                    logger.LogInformation("Attempting to create member: {Name}, Type: {MemberType}",
+                        createMemberDto?.Name, createMemberDto?.MemberType);
+
                     var member = authService.SignUp(createMemberDto);
+
+                    logger.LogInformation("Member created successfully with ID: {MemberID}", member.MemberID);
+
                     return Results.Created($"/api/members/{member.MemberID}", member);
                 }
                 catch (ArgumentException ex)
                 {
+                    logger.LogWarning("Signup validation error: {Message}", ex.Message);
                     return Results.BadRequest(ex.Message);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    logger.LogError(ex, "An error occurred during signup for member: {Name}, Type: {MemberType}",
+                        createMemberDto?.Name, createMemberDto?.MemberType);
                     return Results.Problem("An error occurred during signup.");
                 }
             })

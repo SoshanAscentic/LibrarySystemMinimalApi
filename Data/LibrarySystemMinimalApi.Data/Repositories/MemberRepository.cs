@@ -3,6 +3,7 @@ using LibrarySystemMinimalApi.Data.InMemoryStorage;
 using LibrarySystemMinimalApi.Data.Repositories.Interface;
 using LibrarySystemMinimalApi.Domain.Entities.Members;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,15 +14,31 @@ namespace LibrarySystemMinimalApi.Data.Repositories
 {
     public class MemberRepository : BaseRepository<Member>, IMemberRepository
     {
-        public MemberRepository(LibraryDbContext context) : base(context) { }
+        private readonly ILogger<MemberRepository> logger;
 
-        
+        public MemberRepository(LibraryDbContext context, ILogger<MemberRepository> logger) : base(context)
+        {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
         public override void Add(Member member)
         {
             if (member == null) throw new ArgumentNullException(nameof(member));
 
-            base.Add(member);
-            SaveChanges(); 
+            try
+            {
+                logger.LogInformation("Adding member to database: {Name}", member.Name);
+
+                base.Add(member);
+                SaveChanges(); // This calls context.SaveChanges()
+
+                logger.LogInformation("Member added successfully with ID: {MemberID}", member.MemberID);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error adding member to database: {Name}", member.Name);
+                throw;
+            }
         }
 
         public override IEnumerable<Member> GetAll()
@@ -31,7 +48,6 @@ namespace LibrarySystemMinimalApi.Data.Repositories
                 .ToList();
         }
 
-        // Your existing method with validation
         public Member GetByIdWithValidation(int memberId)
         {
             var member = GetById(memberId);
@@ -40,7 +56,6 @@ namespace LibrarySystemMinimalApi.Data.Repositories
             return member;
         }
 
-        // Specific Member methods
         public IEnumerable<Member> GetByMemberType<TMember>() where TMember : Member
         {
             return dbSet.OfType<TMember>().ToList();

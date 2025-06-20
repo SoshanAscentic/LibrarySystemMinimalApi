@@ -18,8 +18,8 @@ namespace LibrarySystemMinimalApi.Data.Repositories
 
         public BaseRepository(LibraryDbContext context)
         {
-            context = context ?? throw new ArgumentNullException(nameof(context));
-            dbSet = context.Set<T>();
+            this.context = context ?? throw new ArgumentNullException(nameof(context));
+            this.dbSet = context.Set<T>();
         }
 
         // Basic CRUD Operations
