@@ -26,8 +26,7 @@ namespace LibrarySystemMinimalApi.Api.Endpoints
                     return Results.Ok(new
                     {
                         message = "Book borrowed successfully!",
-                        book = borrowDto.Title,
-                        year = borrowDto.PublicationYear,
+                        bookId = borrowDto.BookId,
                         memberId = borrowDto.MemberID
                     });
                 }
@@ -64,8 +63,7 @@ namespace LibrarySystemMinimalApi.Api.Endpoints
                     return Results.Ok(new
                     {
                         message = "Book returned successfully!",
-                        book = returnDto.Title,
-                        year = returnDto.PublicationYear,
+                        bookId = returnDto.BookId,
                         memberId = returnDto.MemberID
                     });
                 }

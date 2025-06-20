@@ -20,19 +20,24 @@ namespace LibrarySystemMinimalApi.Application.Services
             this.memberRepository = memberRepository ?? throw new ArgumentNullException(nameof(memberRepository));
         }
 
-        // BookId-based methods
-        public bool BorrowBook(int bookId, int memberId)
+        public bool BorrowBook(BorrowReturnDto borrowDto)
         {
-            var member = memberRepository.GetById(memberId);
+            if (borrowDto == null)
+                throw new ArgumentNullException(nameof(borrowDto));
+
+            if (borrowDto.BookId <= 0)
+                throw new ArgumentException("Book ID must be positive.", nameof(borrowDto.BookId));
+
+            var member = memberRepository.GetById(borrowDto.MemberID);
             if (member == null)
-                throw new InvalidOperationException($"Member with ID {memberId} not found.");
+                throw new InvalidOperationException($"Member with ID {borrowDto.MemberID} not found.");
 
             if (!member.CanBorrowBooks())
                 throw new InvalidOperationException($"{member.GetMemberType()} does not have permission to borrow books.");
 
-            var book = bookRepository.GetByBookId(bookId);
+            var book = bookRepository.GetById(borrowDto.BookId);
             if (book == null)
-                throw new InvalidOperationException($"Book with ID {bookId} not found.");
+                throw new InvalidOperationException($"Book with ID {borrowDto.BookId} not found.");
 
             if (!book.IsAvailable)
                 throw new InvalidOperationException($"Book '{book.Title}' is currently not available for borrowing.");
@@ -48,15 +53,21 @@ namespace LibrarySystemMinimalApi.Application.Services
             return true;
         }
 
-        public bool ReturnBook(int bookId, int memberId)
+        public bool ReturnBook(BorrowReturnDto returnDto)
         {
-            var member = memberRepository.GetById(memberId);
-            if (member == null)
-                throw new InvalidOperationException($"Member with ID {memberId} not found.");
+            if (returnDto == null)
+                throw new ArgumentNullException(nameof(returnDto));
 
-            var book = bookRepository.GetByBookId(bookId);
+            if (returnDto.BookId <= 0)
+                throw new ArgumentException("Book ID must be positive.", nameof(returnDto.BookId));
+
+            var member = memberRepository.GetById(returnDto.MemberID);
+            if (member == null)
+                throw new InvalidOperationException($"Member with ID {returnDto.MemberID} not found.");
+
+            var book = bookRepository.GetById(returnDto.BookId);
             if (book == null)
-                throw new InvalidOperationException($"Book with ID {bookId} not found.");
+                throw new InvalidOperationException($"Book with ID {returnDto.BookId} not found.");
 
             if (book.IsAvailable)
                 throw new InvalidOperationException($"Book '{book.Title}' is not currently borrowed.");
@@ -68,20 +79,6 @@ namespace LibrarySystemMinimalApi.Application.Services
             member.BorrowedBooksCount--;
 
             return true;
-        }
-
-        public bool ReturnBook(BorrowReturnDto returnDto)
-        {
-            if (returnDto == null)
-                throw new ArgumentNullException(nameof(returnDto));
-
-
-            if (returnDto.BookId > 0)
-            {
-                return ReturnBook(returnDto.BookId, returnDto.MemberID);
-            }
-
-            throw new ArgumentException("Either BookId or Title + PublicationYear must be provided.");
         }
     }
 }

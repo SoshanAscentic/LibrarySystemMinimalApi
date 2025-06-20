@@ -9,8 +9,8 @@ namespace LibrarySystemMinimalApi.Application.Interfaces
 {
     public interface IBorrowingService
     {
-        bool BorrowBook(int bookId, int memberId);
-        bool ReturnBook(int bookId, int memberId);
+        bool BorrowBook(BorrowReturnDto returnDto);
+        bool ReturnBook(BorrowReturnDto returnDto);
 
     }
 }

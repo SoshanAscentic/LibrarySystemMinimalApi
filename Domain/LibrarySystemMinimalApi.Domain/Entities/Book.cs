@@ -13,6 +13,7 @@ namespace LibrarySystemMinimalApi.Domain.Entities
         private string title;
         private string author;
         private int publicationYear;
+        public int BookId { get; set; }
 
         public string Title
         {

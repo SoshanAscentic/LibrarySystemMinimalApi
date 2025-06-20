@@ -13,10 +13,14 @@ namespace LibrarySystemMinimalApi.Data.Configuration
     {
         public void Configure(EntityTypeBuilder<Book> builder)
         {
-            //Primary Key : BookId
+            // Primary Key is now BookId (auto-incrementing)
             builder.HasKey(b => b.BookId);
 
-            //Properties
+            builder.Property(b => b.BookId)
+                .IsRequired()
+                .ValueGeneratedOnAdd();
+
+            // Properties
             builder.Property(b => b.Title)
                 .IsRequired()
                 .HasMaxLength(200);
@@ -31,45 +35,72 @@ namespace LibrarySystemMinimalApi.Data.Configuration
 
             builder.Property(b => b.Category)
                 .IsRequired()
-                .HasConversion<int>(); // Store enum as int
+                .HasConversion<int>();
 
             builder.Property(b => b.IsAvailable)
                 .IsRequired()
                 .HasDefaultValue(true);
 
-            //Table configuration
+            // Table configuration
             builder.ToTable("Books");
 
-            //Index for better query performance
+            // Indexes
             builder.HasIndex(b => b.Author)
                 .HasDatabaseName("IX_Books_Author");
 
             builder.HasIndex(b => b.Category)
                 .HasDatabaseName("IX_Books_Category");
 
+            // Unique constraint for Title + PublicationYear combination
             builder.HasIndex(b => new { b.Title, b.PublicationYear })
                 .IsUnique()
-                .HasDatabaseName("IX_Books_Title_PublicationYear");
+                .HasDatabaseName("IX_Books_Title_Year");
 
+            // Seed data with NEGATIVE BookId values (EF Core requirement)
             builder.HasData(
-                new Book("The Great Gatsby", "F. Scott Fitzgerald", 1925, Book.BookCategory.Fiction)
+                new Book
                 {
+                    BookId = -1,
+                    Title = "The Great Gatsby",
+                    Author = "F. Scott Fitzgerald",
+                    PublicationYear = 1925,
+                    Category = Book.BookCategory.Fiction,
                     IsAvailable = true
                 },
-                new Book("To Kill a Mockingbird", "Harper Lee", 1960, Book.BookCategory.Fiction)
+                new Book
                 {
+                    BookId = -2,
+                    Title = "To Kill a Mockingbird",
+                    Author = "Harper Lee",
+                    PublicationYear = 1960,
+                    Category = Book.BookCategory.Fiction,
                     IsAvailable = true
                 },
-                new Book("1984", "George Orwell", 1949, Book.BookCategory.Fiction)
+                new Book
                 {
+                    BookId = -3,
+                    Title = "1984",
+                    Author = "George Orwell",
+                    PublicationYear = 1949,
+                    Category = Book.BookCategory.Fiction,
                     IsAvailable = true
                 },
-                new Book("A Brief History of Time", "Stephen Hawking", 1988, Book.BookCategory.History)
+                new Book
                 {
+                    BookId = -4,
+                    Title = "A Brief History of Time",
+                    Author = "Stephen Hawking",
+                    PublicationYear = 1988,
+                    Category = Book.BookCategory.History,
                     IsAvailable = true
                 },
-                new Book("The Very Hungry Caterpillar", "Eric Carle", 1969, Book.BookCategory.Child)
+                new Book
                 {
+                    BookId = -5,
+                    Title = "The Very Hungry Caterpillar",
+                    Author = "Eric Carle",
+                    PublicationYear = 1969,
+                    Category = Book.BookCategory.Child,
                     IsAvailable = true
                 }
             );
